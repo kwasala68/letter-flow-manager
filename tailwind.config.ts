@@ -61,7 +61,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+                priority: {
+                    low: '#4ade80',       // Green for low priority
+                    medium: '#facc15',    // Yellow for medium priority
+                    high: '#ef4444',      // Red for high priority
+                },
+                status: {
+                    new: '#3b82f6',       // Blue for new
+                    inProgress: '#8b5cf6', // Purple for in progress
+                    completed: '#10b981',  // Green for completed
+                }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
