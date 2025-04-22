@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,9 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import LettersList from "./pages/LettersList";
 import NewLetter from "./pages/NewLetter";
+import Users from "./pages/Users";
+import Assignments from "./pages/Assignments";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +29,9 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/letters" element={<LettersList />} />
             <Route path="/letters/new" element={<NewLetter />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/assignments" element={<Assignments />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/unauthorized" element={
               <div className="flex min-h-screen items-center justify-center bg-background">
                 <div className="text-center">
