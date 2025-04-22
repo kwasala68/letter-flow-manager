@@ -5,12 +5,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Letter } from "@/types";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 const mockLetters: Letter[] = [
   {
     id: "LTR001",
+    referenceNumber: "REF/2025/001",
+    letterDate: "2025-04-10",
+    receivedDate: "2025-04-10",
     title: "Budget Approval Request",
     from: "Finance Department",
+    addressType: "direct",
     assignedTo: null,
     assignedDepartment: null,
     status: "new",
@@ -26,8 +31,12 @@ const mockLetters: Letter[] = [
   },
   {
     id: "LTR002",
+    referenceNumber: "REF/2025/002",
+    letterDate: "2025-04-12",
+    receivedDate: "2025-04-12",
     title: "Employee Hiring Request",
     from: "HR Department",
+    addressType: "direct",
     assignedTo: null,
     assignedDepartment: null,
     status: "new",
@@ -40,35 +49,39 @@ const mockLetters: Letter[] = [
     attachmentUrl: null,
     createdAt: "2025-04-12",
     updatedAt: "2025-04-12"
-  },
-  {
-    id: "LTR003",
-    title: "Office Equipment Purchase",
-    from: "Procurement Office",
-    assignedTo: null,
-    assignedDepartment: null,
-    status: "new",
-    percentComplete: 0,
-    priority: "low",
-    startDate: null,
-    dueDate: "2025-05-20",
-    completedDate: null,
-    description: "Request for approval to purchase new office equipment",
-    attachmentUrl: null,
-    createdAt: "2025-04-15",
-    updatedAt: "2025-04-15"
   }
 ];
 
 const departments = ["Finance", "Budget", "HR", "IT", "Operations"];
 
 export default function Assignments() {
-  const [letters] = useState<Letter[]>(mockLetters);
+  const { toast } = useToast();
+  const [letters, setLetters] = useState<Letter[]>(mockLetters);
+  const [selectedDepartments, setSelectedDepartments] = useState<{ [key: string]: string }>({});
 
-  const handleAssign = (letterId: string, department: string) => {
-    // In a real app, this would update the letter in the database
-    console.log(`Assigning letter ${letterId} to department ${department}`);
+  const handleAssign = (letterId: string) => {
+    const department = selectedDepartments[letterId];
+    if (!department) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select a department first."
+      });
+      return;
+    }
+
+    // Update the letter status and department
+    setLetters(prevLetters => 
+      prevLetters.filter(letter => letter.id !== letterId)
+    );
+
+    toast({
+      title: "Letter Assigned",
+      description: `Letter ${letterId} has been assigned to ${department} department.`
+    });
   };
+
+  const pendingLetters = letters.filter(letter => letter.status === 'new');
 
   return (
     <AppLayout requiredRole="general-manager">
@@ -81,11 +94,13 @@ export default function Assignments() {
         </div>
         
         <div className="grid gap-6">
-          {letters.map((letter) => (
+          {pendingLetters.map((letter) => (
             <Card key={letter.id}>
               <CardHeader>
                 <CardTitle>{letter.title}</CardTitle>
-                <CardDescription>From: {letter.from} | Priority: {letter.priority}</CardDescription>
+                <CardDescription>
+                  From: {letter.from} | Reference: {letter.referenceNumber} | Priority: {letter.priority}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-2">
@@ -93,12 +108,15 @@ export default function Assignments() {
                     {letter.description}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Due by: {letter.dueDate || 'Not specified'}
+                    Letter Date: {letter.letterDate} | Received: {letter.receivedDate}
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between">
-                <Select onValueChange={(value) => handleAssign(letter.id, value)}>
+                <Select 
+                  value={selectedDepartments[letter.id] || ''} 
+                  onValueChange={(value) => setSelectedDepartments(prev => ({ ...prev, [letter.id]: value }))}
+                >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Assign to..." />
                   </SelectTrigger>
@@ -108,10 +126,22 @@ export default function Assignments() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button size="sm">Assign</Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => handleAssign(letter.id)}
+                  disabled={!selectedDepartments[letter.id]}
+                >
+                  Assign
+                </Button>
               </CardFooter>
             </Card>
           ))}
+          
+          {pendingLetters.length === 0 && (
+            <div className="text-center p-8 bg-muted rounded-lg">
+              <p className="text-muted-foreground">No pending letters to assign</p>
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>

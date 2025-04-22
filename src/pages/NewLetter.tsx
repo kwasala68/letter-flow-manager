@@ -10,10 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { FileText, Calendar as CalendarIcon, Hash, Mail, File } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { LetterPriority } from "@/types";
+import { AddressType } from "@/types";
 
 export default function NewLetter() {
   const { toast } = useToast();
@@ -21,11 +21,13 @@ export default function NewLetter() {
   const [loading, setLoading] = useState(false);
   
   // Form state
-  const [title, setTitle] = useState("");
+  const [letterDate, setLetterDate] = useState<Date | undefined>();
+  const [receivedDate, setReceivedDate] = useState<Date | undefined>();
+  const [referenceNumber, setReferenceNumber] = useState("");
   const [from, setFrom] = useState("");
-  const [priority, setPriority] = useState<LetterPriority>("medium");
-  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [addressType, setAddressType] = useState<AddressType>("direct");
   const [file, setFile] = useState<File | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,18 +35,18 @@ export default function NewLetter() {
     setLoading(true);
     
     try {
+      // Simulate generating a letter ID
+      const letterId = `LTR-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+      
       // In a real app, this would be an API call to create the letter
-      // Simulate a network delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
-      // Show success message
       toast({
         title: "Letter created successfully",
-        description: `Letter "${title}" has been created and assigned letter ID: LTR-${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
+        description: `Letter "${title}" has been created with ID: ${letterId}`,
       });
       
-      // Navigate to the letters list
-      navigate("/letters");
+      navigate("/assignments");
     } catch (error) {
       console.error(error);
       
@@ -68,93 +70,149 @@ export default function NewLetter() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="title">Letter Title <span className="text-destructive">*</span></Label>
-              <Input 
-                id="title" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                placeholder="Enter letter title"
-                required 
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="from">Letter From <span className="text-destructive">*</span></Label>
-              <Input 
-                id="from" 
-                value={from} 
-                onChange={(e) => setFrom(e.target.value)} 
-                placeholder="Enter sender information"
-                required 
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="priority">Priority <span className="text-destructive">*</span></Label>
-              <Select value={priority} onValueChange={(value) => setPriority(value as LetterPriority)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="dueDate">Due Date</Label>
+              <Label>Letter Date <span className="text-destructive">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant={"outline"}
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !dueDate && "text-muted-foreground"
+                      !letterDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dueDate ? format(dueDate, "PPP") : "Select due date"}
+                    {letterDate ? format(letterDate, "PPP") : <span>Select date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={dueDate}
-                    onSelect={setDueDate}
+                    selected={letterDate}
+                    onSelect={setLetterDate}
                     initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Received Date <span className="text-destructive">*</span></Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !receivedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {receivedDate ? format(receivedDate, "PPP") : <span>Select date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={receivedDate}
+                    onSelect={setReceivedDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
             </div>
           </div>
 
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="referenceNumber">Reference Number <span className="text-destructive">*</span></Label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="referenceNumber"
+                  placeholder="Enter reference number"
+                  value={referenceNumber}
+                  onChange={(e) => setReferenceNumber(e.target.value)}
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="from">From Whom <span className="text-destructive">*</span></Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="from"
+                  placeholder="Enter sender"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="title">Letter Title <span className="text-destructive">*</span></Label>
+              <div className="relative">
+                <FileText className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="title"
+                  placeholder="Enter letter title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="addressType">Direct Address/As a copy <span className="text-destructive">*</span></Label>
+              <Select value={addressType} onValueChange={(value) => setAddressType(value as AddressType)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select address type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="direct">Direct Address</SelectItem>
+                  <SelectItem value="copy">As a Copy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="description">Description <span className="text-destructive">*</span></Label>
-            <Textarea 
-              id="description" 
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter letter description"
               className="min-h-32"
-              required 
+              required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="attachment">Attachment (PDF, Image)</Label>
-            <Input 
-              id="attachment" 
-              type="file" 
-              onChange={(e) => setFile(e.target.files?.[0] || null)} 
-              accept=".pdf,.jpg,.jpeg,.png"
-            />
+            <div className="relative">
+              <File className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="attachment"
+                type="file"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="pl-9"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end space-x-4">

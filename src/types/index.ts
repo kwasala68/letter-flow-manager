@@ -1,4 +1,3 @@
-
 // User role types
 export type UserRole = 'data-entry' | 'general-manager' | 'department-manager' | 'subject-clerk';
 
@@ -16,11 +15,18 @@ export type LetterPriority = 'low' | 'medium' | 'high';
 // Letter status types
 export type LetterStatus = 'new' | 'assigned-to-department' | 'assigned-to-clerk' | 'in-progress' | 'completed';
 
+// Letter addressing type
+export type AddressType = 'direct' | 'copy';
+
 // Letter interface
 export interface Letter {
   id: string;
+  referenceNumber: string;
+  letterDate: string;
+  receivedDate: string;
   title: string;
   from: string;
+  addressType: AddressType;
   assignedTo: string | null;
   assignedDepartment: string | null;
   status: LetterStatus;
