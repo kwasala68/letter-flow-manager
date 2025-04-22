@@ -1,4 +1,3 @@
-
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Letter } from "@/types";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import { FileText } from "lucide-react";
 
 const mockLetters: Letter[] = [
   {
@@ -56,6 +57,7 @@ const departments = ["Finance", "Budget", "HR", "IT", "Operations"];
 
 export default function Assignments() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [letters, setLetters] = useState<Letter[]>(mockLetters);
   const [selectedDepartments, setSelectedDepartments] = useState<{ [key: string]: string }>({});
 
@@ -70,7 +72,6 @@ export default function Assignments() {
       return;
     }
 
-    // Update the letter status and department
     setLetters(prevLetters => 
       prevLetters.filter(letter => letter.id !== letterId)
     );
@@ -112,26 +113,36 @@ export default function Assignments() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Select 
-                  value={selectedDepartments[letter.id] || ''} 
-                  onValueChange={(value) => setSelectedDepartments(prev => ({ ...prev, [letter.id]: value }))}
+              <CardFooter className="flex justify-between items-center">
+                <div className="flex gap-4">
+                  <Select 
+                    value={selectedDepartments[letter.id] || ''} 
+                    onValueChange={(value) => setSelectedDepartments(prev => ({ ...prev, [letter.id]: value }))}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Assign to..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleAssign(letter.id)}
+                    disabled={!selectedDepartments[letter.id]}
+                  >
+                    Assign
+                  </Button>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/letters/${letter.id}`)}
                 >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Assign to..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button 
-                  size="sm" 
-                  onClick={() => handleAssign(letter.id)}
-                  disabled={!selectedDepartments[letter.id]}
-                >
-                  Assign
+                  <FileText className="mr-2" />
+                  View Details
                 </Button>
               </CardFooter>
             </Card>
